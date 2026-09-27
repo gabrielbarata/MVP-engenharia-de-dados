@@ -3,6 +3,7 @@
 **Aluno:** Gabriel Simas Gomes Barata  
 **Plataforma:** Databricks Free Edition  
 **Arquitetura:** Medalhão (Bronze → Silver → Gold) sobre Delta Lake  
+**Notebook:** [`MVP.ipynb`](MVP.ipynb)
 
 ---
 
@@ -141,7 +142,7 @@ Rastreada automaticamente pelo **Unity Catalog** (aba *Lineage*).
 ## Pipeline de Dados (Etapa 4.4)
 
 ### Organização
-Tudo em **um único notebook** (`notebooks/MVP_IMDB_Databricks.ipynb`), dividido em seções — uma por camada — para manter linearidade e reprodutibilidade. Cada seção é independente o suficiente para ser reexecutada sem afetar as outras.
+Tudo em **um único notebook** (`MVP.ipynb`), dividido em seções — uma por camada — para manter linearidade e reprodutibilidade. Cada seção é independente o suficiente para ser reexecutada sem afetar as outras.
 
 ### Fluxo ETL
 1. **Extract** — `kagglehub` baixa o CSV.
@@ -280,6 +281,6 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 ---
 
 ## Como reproduzir
-1. Abrir o notebook `notebooks/MVP_IMDB_Databricks.ipynb` no Databricks Free Edition.
+1. Abrir o notebook `MVP.ipynb` no Databricks Free Edition.
 2. Rodar as células na ordem.
 3. Verificar as tabelas criadas nos schemas `bronze`, `silver`, `gold`.
