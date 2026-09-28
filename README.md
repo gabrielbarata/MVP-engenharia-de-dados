@@ -3,8 +3,38 @@
 **Aluno:** Gabriel Simas Gomes Barata  
 **Plataforma:** Databricks Free Edition  
 **Arquitetura:** Medalhão (Bronze → Silver → Gold) sobre Delta Lake  
+**Dataset:** IMDB Dataset of Top 1000 Movies and TV Shows — licença **CC0: Public Domain**  
 **Notebook:** [`MVP.ipynb`](MVP.ipynb)  
-**Repositório:** https://github.com/gabrielbarata/MVP-engenharia-de-dados  
+**Repositório:** https://github.com/gabrielbarata/MVP-engenharia-de-dados
+
+---
+
+## Estrutura do Repositório
+
+```
+.
+├── README.md                          # Este documento
+├── MVP.ipynb                          # Notebook Databricks (pipeline completo)
+└── docs/
+    └── screenshots/                   # Evidências de execução
+        ├── 01_catalog.png             # Unity Catalog com schemas e tabelas
+        ├── 02_bronze_table.png        # bronze.imdb_raw
+        ├── 03_silver_table.png        # silver.imdb_clean
+        ├── 04_gold_tables.png         # SHOW TABLES IN gold
+        ├── 05_lineage.png             # Aba Lineage do Unity Catalog
+        ├── 06_pg1_genre.png           # Resultado tabular PG1
+        ├── 07_pg2_periodo.png         # Resultado tabular PG2
+        ├── 08_pg3_duracao.png         # Resultado tabular PG3
+        ├── 09_pg4_correlacao.png      # Resultado tabular PG4a + PG4b
+        ├── 10_pg5_diretores.png       # Resultado tabular PG5
+        ├── 11_dq_summary.png          # gold.dq_summary
+        ├── 12_pg1_grafico.png         # Gráfico PG1 (barras horizontais)
+        ├── 13_pg2_grafico.png         # Gráfico PG2 (barras verticais)
+        ├── 14_pg3_grafico.png         # Gráfico PG3 (barras verticais)
+        ├── 15_pg4_scatter.png         # Gráfico PG4 (scatter votos × nota)
+        └── 16_pg5_grafico.png         # Gráfico PG5 (barras horizontais)
+```
+
 ---
 
 ## Contexto de Negócios e Perguntas (Etapas 2 e 4.1)
@@ -40,7 +70,7 @@ Coleta via **`kagglehub`** (API oficial do Kaggle) executada direto no cluster D
 ### Persistência
 Tabela Delta `bronze.imdb_raw` no Unity Catalog. Schema `bronze` criado via SQL.
 
-**Script:** ver notebook, seções **"2. Carga dos Dados — Camada Bronze"**.
+**Script:** ver notebook, seção **"2. Carga dos Dados — Camada Bronze"**.
 
 **Evidência:** `docs/screenshots/02_bronze_table.png`.
 
@@ -199,7 +229,8 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 
 **Discussão:** gêneros de nicho lideram, mas com volume pequeno (**survivorship bias** — só o topo entra). Drama mantém média competitiva com 723 filmes (14× a amostra de War) → **robusto e comercialmente recomendado**.
 
-*Evidência:* `docs/screenshots/06_pg1_genre.png`.
+*Evidência:* `docs/screenshots/06_pg1_genre.png`.  
+*Evidência gráfica:* `docs/screenshots/12_pg1_grafico.png`.
 
 ### PG2 — Filmes pós-2000 são melhores?
 | Período | Média | Nº |
@@ -209,7 +240,8 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 
 **Discussão:** diferença pequena (+0.067 a favor dos pré-2000). Era **não é preditor forte**. Pré-2000 tem vantagem porque passou pelo teste do tempo.
 
-*Evidência:* `docs/screenshots/07_pg2_periodo.png`.
+*Evidência:* `docs/screenshots/07_pg2_periodo.png`.  
+*Evidência gráfica:* `docs/screenshots/13_pg2_grafico.png`.
 
 ### PG3 — Duração influencia a nota?
 | Faixa | Média nota | Média votos | Nº |
@@ -220,14 +252,22 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 
 **Discussão:** longos têm média **+0.17** maior. Correlação com ambição artística e engajamento. **Não é "ser longo" que gera nota**, é o tipo de filme (épicos, dramas históricos). *Sweet spot* comercial continua 100–150min.
 
-*Evidência:* `docs/screenshots/08_pg3_duracao.png`.
+*Evidência:* `docs/screenshots/08_pg3_duracao.png`.  
+*Evidência gráfica:* `docs/screenshots/14_pg3_grafico.png`.
 
 ### PG4 — Correlação votos × nota
 **Pearson r = 0.4954** (moderada positiva). r² ≈ 0.245 → 25% da variação da nota é explicada pelos votos.
 
+| Faixa de votos | Média nota | Nº |
+|---------------|-----------|----|
+| Alto (500k+) | **8.178** | 183 |
+| Médio (100k–500k) | 7.901 | 394 |
+| Baixo (<100k) | 7.896 | 422 |
+
 **Discussão:** popularidade e qualidade **andam juntas mas não perfeitamente**. Existem **joias escondidas** (alta nota, baixo volume) — boas para curadoria editorial. Marketing sozinho não garante nota.
 
-*Evidência:* `docs/screenshots/09_pg4_correlacao.png`.
+*Evidência:* `docs/screenshots/09_pg4_correlacao.png`.  
+*Evidência gráfica:* `docs/screenshots/15_pg4_scatter.png`.
 
 ### PG5 — Melhores diretores (≥3 filmes)
 | Diretor | Média | Nº |
@@ -242,7 +282,8 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 
 **Discussão:** Nolan lidera em média **e** volume. Kubrick e Kurosawa mantêm >8.2 com 9–10 filmes — **consistência ainda mais difícil**. Para aquisição/contratação, esses nomes reduzem risco percebido.
 
-*Evidência:* `docs/screenshots/10_pg5_diretores.png`.
+*Evidência:* `docs/screenshots/10_pg5_diretores.png`.  
+*Evidência gráfica:* `docs/screenshots/16_pg5_grafico.png`.
 
 ### Conclusão geral — o que caracteriza um filme bem avaliado?
 1. **Gênero:** Drama (ou Crime+Drama); nichos (War, Film-Noir) para prestígio.
