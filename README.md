@@ -17,6 +17,7 @@
 ├── MVP.ipynb                          # Notebook Databricks (pipeline completo)
 └── docs/
     └── screenshots/                   # Evidências de execução
+        ├── 00_repos.png               # Databricks Repos conectado
         ├── 01_catalog.png             # Unity Catalog com schemas e tabelas
         ├── 02_bronze_table.png        # bronze.imdb_raw
         ├── 03_silver_table.png        # silver.imdb_clean
@@ -24,6 +25,7 @@
         ├── 05_lineage.png             # Aba Lineage do Unity Catalog
         ├── 06_pg1_genre.png           # Resultado tabular PG1
         ├── 07_pg2_periodo.png         # Resultado tabular PG2
+        ├── 07b_pg2_decada.png         # Resultado tabular PG2b
         ├── 08_pg3_duracao.png         # Resultado tabular PG3
         ├── 09_pg4_correlacao.png      # Resultado tabular PG4a + PG4b
         ├── 10_pg5_diretores.png       # Resultado tabular PG5
@@ -34,6 +36,19 @@
         ├── 15_pg4_scatter.png         # Gráfico PG4 (scatter votos × nota)
         └── 16_pg5_grafico.png         # Gráfico PG5 (barras horizontais)
 ```
+
+---
+
+## Databricks Repos (Requisito de Entrega)
+
+O código está versionado em repositório público do GitHub e conectado ao Databricks
+via **Databricks Repos**, conforme exigido pelo enunciado:
+
+- **Repositório público:** https://github.com/gabrielbarata/MVP-engenharia-de-dados
+- **Integração:** Workspace → Repos → Add Repo → URL do GitHub
+- **Benefício:** versionamento automático, PRs, branches e reprodutibilidade
+
+**Evidência:** `docs/screenshots/00_repos.png`
 
 ---
 
@@ -149,8 +164,16 @@ Mesmas colunas da Bronze, com ajustes de tipo + nova coluna:
 | Released_Year | int | Ano |
 | genero | string | Gênero individual (pós-explode) |
 
-#### Agregações Gold (`avg_rating_by_genre`, `avg_rating_by_decade`, `avg_rating_by_duration`, `top_directors`)
-Colunas padrão: `chave` (string), `media_nota` (double), `qtd_filmes` (long). Algumas incluem `media_votos`.
+#### Agregações Gold
+
+Cada tabela tem **chave própria + métricas** (não existe coluna genérica `chave`):
+
+| Tabela | Coluna-chave | Métricas |
+|--------|--------------|----------|
+| `gold.avg_rating_by_genre` | `genero` (string) | `media_nota` (double), `qtd_filmes` (long) |
+| `gold.avg_rating_by_decade` | `decada` (long) | `media_nota` (double), `qtd_filmes` (long) |
+| `gold.avg_rating_by_duration` | `faixa_duracao` (string) | `media_nota` (double), `media_votos` (double), `qtd_filmes` (long) |
+| `gold.top_directors` | `Director` (string) | `media_nota` (double), `qtd_filmes` (long) |
 
 #### `gold.dq_summary`
 | Campo | Tipo | Descrição |
@@ -159,13 +182,25 @@ Colunas padrão: `chave` (string), `media_nota` (double), `qtd_filmes` (long). A
 | valor | double | Valor medido |
 | detalhe | string | Contexto do indicador |
 
+### Como visualizar o Catálogo e a Linhagem no Unity Catalog
+
+1. No Databricks: **Catalog → `workspace` → schema `bronze`/`silver`/`gold`**
+2. Cada tabela exibe **descrição** (COMMENT ON TABLE) e **comentário de coluna** (COMMENT ON COLUMN)
+3. Aba **Lineage** de qualquer tabela gold mostra o grafo automático:
+   `bronze.imdb_raw → silver.imdb_clean → gold.fato_filmes → gold.avg_rating_by_genre`
+4. Aba **Sample Data** permite inspeção visual sem abrir notebook
+
+**Evidências:** `docs/screenshots/01_catalog.png`, `docs/screenshots/05_lineage.png`
+
 ### Linhagem
+
 ```
-Kaggle CSV → bronze.imdb_raw → silver.imdb_clean → gold.fato_filmes / gold.dim_genero → agregações gold.*
+Kaggle CSV → bronze.imdb_raw → silver.imdb_clean → gold.fato_filmes / gold.dim_genero → agregações gold.* + gold.dq_summary
 ```
+
 Rastreada automaticamente pelo **Unity Catalog** (aba *Lineage*).
 
-**Evidências:** `docs/screenshots/01_catalog.png`, `05_lineage.png`, `11_dq_summary.png`.
+**Evidências:** `docs/screenshots/01_catalog.png`, `docs/screenshots/05_lineage.png`, `docs/screenshots/11_dq_summary.png`.
 
 ---
 
@@ -183,7 +218,7 @@ Tudo em **um único notebook** (`MVP.ipynb`), dividido em seções — uma por c
 ### Documentação das transformações
 Todas as transformações estão comentadas **célula a célula** no notebook, com o motivo de cada uma (ex.: *"explode do Genre para evitar dupla contagem em médias"*).
 
-**Evidências:** `docs/screenshots/02_bronze_table.png`, `03_silver_table.png`, `04_gold_tables.png`.
+**Evidências:** `docs/screenshots/02_bronze_table.png`, `docs/screenshots/03_silver_table.png`, `docs/screenshots/04_gold_tables.png`.
 
 ---
 
@@ -242,6 +277,14 @@ Verificação de 6 dimensões clássicas sobre `silver.imdb_clean`.
 
 *Evidência:* `docs/screenshots/07_pg2_periodo.png`.  
 *Evidência gráfica:* `docs/screenshots/13_pg2_grafico.png`.
+
+### PG2b — Efeito de década (análise complementar)
+
+**Discussão:** a visão por década mostra que a aparente vantagem pré-2000 **não é uniforme**. Décadas de 1920–1950 têm médias altas (8.0–8.13) mas amostras pequenas (11–56 filmes), enquanto 2000 e 2010 somam **479 filmes** com médias próximas de 7.90–7.92. O efeito observado é **amostra pequena + viés de curadoria**.
+
+**Detalhe metodológico:** a década de 2020 aparece com média 8.133, mas com apenas **6 filmes** — número estatisticamente irrelevante. Análise por era só é confiável com volume amostral suficiente (n ≥ 30).
+
+*Evidência:* `docs/screenshots/07b_pg2_decada.png`.
 
 ### PG3 — Duração influencia a nota?
 | Faixa | Média nota | Média votos | Nº |
