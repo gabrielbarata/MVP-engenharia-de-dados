@@ -3,8 +3,8 @@
 **Aluno:** Gabriel Simas Gomes Barata  
 **Plataforma:** Databricks Free Edition  
 **Arquitetura:** Medalhão (Bronze → Silver → Gold) sobre Delta Lake  
-**Notebook:** [`MVP.ipynb`](MVP.ipynb)
-
+**Notebook:** [`MVP.ipynb`](MVP.ipynb)  
+**Repositório:** https://github.com/gabrielbarata/MVP-engenharia-de-dados  
 ---
 
 ## Contexto de Negócios e Perguntas (Etapas 2 e 4.1)
